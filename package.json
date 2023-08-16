@@ -1,0 +1,19 @@
+{
+  "name": "estatuto-alert",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pdfjs-dist": "^3.9.179",
+    "pdfreader": "^3.0.2",
+    "puppeteer": "^21.0.3"
+  }
+}
