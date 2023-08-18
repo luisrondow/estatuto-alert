@@ -1,7 +1,8 @@
 import puppeteer from 'puppeteer';
 import { PdfReader } from "pdfreader";
-import pdfjs from 'pdfjs-dist';
 import fs from 'fs';
+
+import { downloadFile, readPdfFile } from './helpers.js';
 
 const INPUT_SELECTOR = '#b2-b2-Input_ActiveItem2';
 const SEARCH_BUTTON_SELECTOR = 'button[type="submit"]';
@@ -133,23 +134,23 @@ async function interectWithResult(page) {
     const hrefValue = await href.jsonValue();
     await page.goto(hrefValue);
 
-    // TODO: DOWNLOAD PDF
-    fs.readFile("sample.pdf", (err, pdfBuffer) => {
-      // pdfBuffer contains the file content
-      new PdfReader().parseBuffer(pdfBuffer, (err, item) => {
-        if (err) console.error("error:", err);
-        else if (!item) console.warn("end of buffer");
-        else if (item.text) {
-          // TODO: PROCESS TEXT
-          console.log(item.text);
-        }
-      });
-    });
+    const fileName = hrefValue.split('/').pop();
 
-    // Navigate to the PDF URL
-    // await page.close()
+    console.log('[DESPACHO PAGE] - Downloading file...', fileName);
 
-    // Wait for the download to complete
+    await downloadFile(hrefValue, `./pdfs/${fileName}`);
+
+    console.log('[DESPACHO PAGE] - File downloaded, reading...');
+
+    const fileContent = await readPdfFile(fileName);
+
+    console.log('[DESPACHO PAGE] - File read, writing...');
+
+    fs.writeFileSync(`./output/${fileName}.txt`, fileContent.join('\n'));
+
+    console.log('[DESPACHO PAGE] - File written');
+
+    await page.close()
   } catch (error) {
     throw error;
   }
@@ -188,19 +189,30 @@ async function interectWithResult(page) {
 
     console.log('\n#### INTERACT WITH RESULT ####');
 
-    await resultElements[0].click();
-    const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
-    const newPage = await newTarget.page();
+    //* For testing purposes only
+    //* Execute only one result
+    // await resultElements[0].click();
+    // const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
+    // const newPage = await newTarget.page();
 
-    await interectWithResult(newPage);
+    // await interectWithResult(newPage);
 
-    // for (const element of resultElements) {
-    //   await element.click();
-    //   const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
-    //   const newPage = await newTarget.page();
+    for (let i=0; i < resultElements.length; i++) {
+      await resultElements[i].click();
+      const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
+      const newPage = await newTarget.page();
 
-    //   await interectWithResult(newPage);
-    // }
+      await interectWithResult(newPage);
+
+      setTimeout(() => {
+        if (i === resultElements.length - 1) {
+          console.log('\n#### DONE ####');
+        }
+        console.log('\n#### next... ####');
+      }, 500);
+    }
+
+    await browser.close();
   } catch (error) {
     console.error(error);
   }
