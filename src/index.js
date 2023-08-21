@@ -134,7 +134,7 @@ async function interectWithResult(page) {
     const hrefValue = await href.jsonValue();
     await page.goto(hrefValue);
 
-    const fileName = hrefValue.split('/').pop();
+    const fileName = hrefValue.split('/').slice(-4).join('');
 
     console.log('[DESPACHO PAGE] - Downloading file...', fileName);
 
