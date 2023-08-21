@@ -20,7 +20,7 @@ const FROM_DATE_BUTTON_SELECTOR = '#Pesquisa2 > div:nth-child(5) > button';
 
 const RESULT_TITLE_SELECTOR = '.itm-title';
 
-const TEXT_SECTION_SELECTOR = '#b7-Texto_Conteudo';
+const TEXT_SECTION_SELECTOR = '#b7-BotoesTopo';
 
 const SEARCH_CONTENT = 'concede o estatuto de igualdade de direitos e deveres a vários cidadãos brasileiros';
 const FROM_DATE = '2023-06-01';
@@ -129,7 +129,7 @@ async function interectWithResult(page) {
     await page.waitForSelector(TEXT_SECTION_SELECTOR);
     console.log('[DESPACHO PAGE] - Text section loaded');
 
-    const originalDocument = await page.$(`${TEXT_SECTION_SELECTOR} a`);
+    const originalDocument = await page.$(`${TEXT_SECTION_SELECTOR} > a.ThemeGrid_MarginGutter`);
     const href = await originalDocument.getProperty('href');
     const hrefValue = await href.jsonValue();
     await page.goto(hrefValue);
@@ -196,6 +196,7 @@ async function interectWithResult(page) {
     // const newPage = await newTarget.page();
 
     // await interectWithResult(newPage);
+    //*
 
     for (let i=0; i < resultElements.length; i++) {
       await resultElements[i].click();
