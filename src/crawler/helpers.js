@@ -3,6 +3,17 @@ import https from 'https'
 import { PdfReader } from "pdfreader";
 
 /**
+ * Check if a given string is a valid date.
+ *
+ * @param {Date} date
+ *
+ * @returns {Boolean}
+ */
+export function isValidDate(date) {
+  return date instanceof Date && !isNaN(date);
+}
+
+/**
  * Download a file from the given `url` into the `targetFile`.
  *
  * @param {String} url
