@@ -13,7 +13,7 @@ datasource db {
 model Person {
   id         Int      @id @default(autoincrement())
   name       String
-  birthDate  DateTime
+  birthDate  DateTime?
   document   Document @relation(fields: [documentId], references: [id])
   documentId Int
 }
@@ -24,8 +24,6 @@ model Document {
   date        DateTime
   link        String
   persons     Person[]
-  job         Job      @relation(fields: [jobId], references: [id])
-  jobId       Int      @unique
 }
 
 model Job {
@@ -33,5 +31,5 @@ model Job {
   runDate  DateTime
   status   String
   error    String?
-  document Document?
+  lastDocumentBeforeRun String?
 }

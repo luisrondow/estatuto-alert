@@ -1,8 +1,10 @@
-import puppeteer from 'puppeteer';
-import { PdfReader } from "pdfreader";
-import fs from 'fs';
+import puppeteer, { Page } from 'puppeteer';
+import { PrismaClient } from '@prisma/client'
 
-import { downloadFile, readPdfFile } from './helpers.js';
+import { downloadFile, isValidDate, readPdfFile } from './helpers.js';
+import { processDocumentText } from './text-process.js';
+
+const prisma = new PrismaClient()
 
 const INPUT_SELECTOR = '#b2-b2-Input_ActiveItem2';
 const SEARCH_BUTTON_SELECTOR = 'button[type="submit"]';
@@ -126,11 +128,21 @@ async function getResults(page) {
 
 async function interectWithResult(page) {
   try {
+
+    if (!page) {
+      throw new Error('No page found in interactWithResult');
+    }
+
     await page.waitForSelector(TEXT_SECTION_SELECTOR);
     console.log('[DESPACHO PAGE] - Text section loaded');
 
     const originalDocument = await page.$(`${TEXT_SECTION_SELECTOR} > a.ThemeGrid_MarginGutter`);
-    const href = await originalDocument.getProperty('href');
+    const href = await originalDocument?.getProperty('href');
+
+    if (!href) {
+      throw new Error('No href found');
+    }
+
     const hrefValue = await href.jsonValue();
     await page.goto(hrefValue);
 
@@ -144,19 +156,32 @@ async function interectWithResult(page) {
 
     const fileContent = await readPdfFile(fileName);
 
-    console.log('[DESPACHO PAGE] - File read, writing...');
+    console.log('[DESPACHO PAGE] - File read, processing...');
 
-    fs.writeFileSync(`./output/${fileName}.txt`, fileContent.join('\n'));
+    const personsInDocument = processDocumentText(fileContent.join('\n'));
 
     console.log('[DESPACHO PAGE] - File written');
 
     await page.close()
+
+    return {
+      persons: personsInDocument,
+      link: hrefValue,
+      releaseDate: fileName.replace('.pdf', '').slice(0, 8),
+      externalId: fileName.replace('.pdf', '').slice(8)
+    };
   } catch (error) {
     throw error;
   }
 }
 
 (async () => {
+  const lastDocumentBeforeCrawling = await prisma.document.findFirst({
+    orderBy: {
+      date: 'desc',
+    },
+  });
+
   // Launch the browser and open a new blank page
   const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage();
@@ -195,7 +220,9 @@ async function interectWithResult(page) {
     // const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
     // const newPage = await newTarget.page();
 
-    // await interectWithResult(newPage);
+    // const { persons, releaseDate, externalId } = await interectWithResult(newPage);
+
+    // console.log('OPPA GANGNAM STYLE', persons, releaseDate, externalId);
     //*
 
     for (let i=0; i < resultElements.length; i++) {
@@ -203,18 +230,63 @@ async function interectWithResult(page) {
       const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
       const newPage = await newTarget.page();
 
-      await interectWithResult(newPage);
+      const { persons, link, releaseDate, externalId } = await interectWithResult(newPage);
+
+      const parsedReleaseDate =
+        `${releaseDate.slice(0, 4)}-${releaseDate.slice(4, 6)}-${releaseDate.slice(6)}`
+
+      await prisma.document.create({
+        data: {
+          externalId,
+          date: isValidDate(new Date(parsedReleaseDate)) ? new Date(parsedReleaseDate) : new Date(),
+          link,
+          persons: {
+            create: persons.map((person) => ({
+              name: person.name,
+              birthDate: isValidDate(new Date(person.birthDate)) ? new Date(person.birthDate) : null,
+            })),
+          },
+        },
+      });
+
+      console.log(`\n#### ${i+1} of ${resultElements.length} ####`);
+      console.log(`#### ${persons.length} persons added from ${releaseDate}${externalId} added ####`);
 
       setTimeout(() => {
         if (i === resultElements.length - 1) {
           console.log('\n#### DONE ####');
+
+          return;
         }
         console.log('\n#### next... ####');
       }, 500);
     }
 
+    await prisma.job.create({
+      data: {
+        runDate: new Date(),
+        status: 'SUCCESS',
+        lastDocumentBeforeRun: `${lastDocumentBeforeCrawling?.date}${lastDocumentBeforeCrawling?.externalId}`,
+      },
+    })
+
+    console.log('SUCCESS Job created');
+
     await browser.close();
   } catch (error) {
-    console.error(error);
+    const errorMessage = error?.message;
+
+    prisma.job.create({
+      data: {
+        runDate: new Date(),
+        status: 'ERROR',
+        error: errorMessage,
+      },
+    }).then(() => {
+      console.log('Error Job created');
+      console.error(error);
+    }).catch((error) => {
+      console.error('Error creating error job', error);
+    })
   }
 })();

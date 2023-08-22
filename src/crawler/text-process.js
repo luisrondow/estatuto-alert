@@ -2,6 +2,12 @@ import fs from 'fs';
 
 const isName = (line) => line.match(/(\. ){10,}/) && !!line.replace(/\. /g, '').trim()
 
+const parseDate = (date) => {
+  const [day, month, year] = date.split('/');
+
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * Take a the document content as a string, exctract the name and date of birth
  * and return this data in an array of objects.
@@ -10,24 +16,26 @@ const isName = (line) => line.match(/(\. ){10,}/) && !!line.replace(/\. /g, '').
  *
  * @returns {Array<{ name: String, dateOfBirth: String }>}
  */
-const processText = (content) => {
+export const processDocumentText = (content) => {
+  console.log(`[PROCESS SCRIPT] - Start to process document text...`)
+
   const lines = content.split('\n');
   const results = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const twoLinesAhead = lines[i+2];
+  lines.forEach((line, i) => {
+    console.log(`[PROCESS SCRIPT] - Processing line ${i} of ${lines.length}...`)
+    if (!isName(line)) return;
 
-    if (isName(line)) {
-      const name = line.replace(/\./g, '').trim()
-      const dateOfBirth = twoLinesAhead.trim();
+    const name = line.replace(/\./g, '').trim()
 
-      if (isName(lines[i+3])) {  // Ensure that there is a new name
-        results.push({ name, dateOfBirth });
-        i+3;  // Skip the nexts lines since we already processed it
-      }
-    }
-  }
+    if (!name) return;
+
+    const birthDate = lines[i+2].trim();
+
+    results.push({ name, birthDate: parseDate(birthDate) });
+  })
+
+  console.log(`[PROCESS SCRIPT] - Processed ${results.length} persons.`)
 
   return results;
 }
