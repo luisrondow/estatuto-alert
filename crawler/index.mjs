@@ -1,8 +1,8 @@
 import puppeteer, { Page } from 'puppeteer';
 import { PrismaClient } from '@prisma/client'
 
-import { downloadFile, isValidDate, readPdfFile } from './helpers.js';
-import { processDocumentText } from './text-process.js';
+import { downloadFile, isValidDate, readPdfFile } from './helpers.mjs';
+import { processDocumentText } from './text-process.mjs';
 
 const prisma = new PrismaClient()
 

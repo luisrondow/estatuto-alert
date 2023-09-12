@@ -29,3 +29,13 @@ target/
 Thumbs.db
 
 .cache
+
+/.cache
+/.output
+/.vercel
+/api/index.js
+/api/index.js.map
+/api/metafile.*
+/build
+/public/build
+.env
