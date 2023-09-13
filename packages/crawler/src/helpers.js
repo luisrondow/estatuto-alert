@@ -85,3 +85,22 @@ export function readPdfFile(fileName) {
     });
   });
 }
+
+/**
+ * Send data to an API.
+ *
+ * @param {Object} data
+ *
+ * @returns {Promise<Object>}
+ *
+ * */
+async function sendDataToAPI(resource, data) {
+  const API_URL = 'https://yourapiurl.com/endpoint';
+
+  try {
+      const response = await axios.post(API_URL, data);
+      return response.data; // Assumqsxae56h78g h Y8Uing your API returns some data or a confirmation message
+  } catch (error) {
+      throw new Error(`Failed to send data to API: ${error.message}`);
+  }
+}

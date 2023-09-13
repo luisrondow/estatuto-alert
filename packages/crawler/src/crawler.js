@@ -1,10 +1,7 @@
 import puppeteer, { Page } from 'puppeteer';
-import { PrismaClient } from '@prisma/client'
 
-import { downloadFile, isValidDate, readPdfFile } from './helpers.mjs';
-import { processDocumentText } from './text-process.mjs';
-
-const prisma = new PrismaClient()
+import { downloadFile, isValidDate, readPdfFile } from './helpers.js';
+import { processDocumentText } from './text-process.js';
 
 const INPUT_SELECTOR = '#b2-b2-Input_ActiveItem2';
 const SEARCH_BUTTON_SELECTOR = 'button[type="submit"]';
@@ -175,12 +172,12 @@ async function interectWithResult(page) {
   }
 }
 
-(async () => {
-  const lastDocumentBeforeCrawling = await prisma.document.findFirst({
-    orderBy: {
-      date: 'desc',
-    },
-  });
+export default async () => {
+  // const lastDocumentBeforeCrawling = await prisma.document.findFirst({
+  //   orderBy: {
+  //     date: 'desc',
+  //   },
+  // });
 
   // Launch the browser and open a new blank page
   const browser = await puppeteer.launch({headless: false});
@@ -235,19 +232,21 @@ async function interectWithResult(page) {
       const parsedReleaseDate =
         `${releaseDate.slice(0, 4)}-${releaseDate.slice(4, 6)}-${releaseDate.slice(6)}`
 
-      await prisma.document.create({
-        data: {
-          externalId,
-          date: isValidDate(new Date(parsedReleaseDate)) ? new Date(parsedReleaseDate) : new Date(),
-          link,
-          persons: {
-            create: persons.map((person) => ({
+
+      await sendDataToAPI(
+        'document',
+        {
+          document: {
+            externalId,
+            date: isValidDate(new Date(parsedReleaseDate)) ? new Date(parsedReleaseDate) : new Date(),
+            link,
+            persons: persons.map((person) => ({
               name: person.name,
               birthDate: isValidDate(new Date(person.birthDate)) ? new Date(person.birthDate) : null,
             })),
           },
-        },
-      });
+        }
+      )
 
       console.log(`\n#### ${i+1} of ${resultElements.length} ####`);
       console.log(`#### ${persons.length} persons added from ${releaseDate}${externalId} added ####`);
@@ -262,13 +261,16 @@ async function interectWithResult(page) {
       }, 500);
     }
 
-    await prisma.job.create({
-      data: {
-        runDate: new Date(),
-        status: 'SUCCESS',
-        lastDocumentBeforeRun: `${lastDocumentBeforeCrawling?.date}${lastDocumentBeforeCrawling?.externalId}`,
-      },
-    })
+    await sendDataToAPI(
+      'job',
+      {
+        job: {
+          runDate: new Date(),
+          status: 'SUCCESS',
+          //lastDocumentBeforeRun: `${lastDocumentBeforeCrawling?.date}${lastDocumentBeforeCrawling?.externalId}`,
+        },
+      }
+    )
 
     console.log('SUCCESS Job created');
 
@@ -276,17 +278,20 @@ async function interectWithResult(page) {
   } catch (error) {
     const errorMessage = error?.message;
 
-    prisma.job.create({
-      data: {
-        runDate: new Date(),
-        status: 'ERROR',
-        error: errorMessage,
-      },
-    }).then(() => {
+    sendDataToAPI(
+      'job',
+      {
+        job: {
+          runDate: new Date(),
+          status: 'ERROR',
+          error: errorMessage,
+        },
+      }
+    ).then(() => {
       console.log('Error Job created');
       console.error(error);
     }).catch((error) => {
       console.error('Error creating error job', error);
     })
   }
-})();
+}
