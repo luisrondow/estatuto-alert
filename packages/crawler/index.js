@@ -11,12 +11,10 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
-app.post('/start-crawler', async (req, res) => {
+app.get('/start-crawler', async (req, res) => {
   try {
-      const data = await crawler();
-
-      const response = await sendDataToAPI(data);
-      res.json({ success: true, message: response });
+      await crawler();
+      res.json({ success: true, message: 'Crawler finished' });
   } catch (error) {
       res.status(500).json({ success: false, message: error.message });
   }
