@@ -1,4 +1,4 @@
-import { prisma } from "~/db.server";
+import { prisma } from '~/db.server';
 
 export async function getPersons() {
   return await prisma.person.findMany({
@@ -13,7 +13,7 @@ export async function getPersonsByName(name: string) {
     where: {
       name: {
         contains: name,
-      }
+      },
     },
     include: {
       document: true,

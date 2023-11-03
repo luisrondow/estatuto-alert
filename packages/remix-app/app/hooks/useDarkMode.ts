@@ -10,7 +10,8 @@ export default function useDarkMode() {
 
     if (
       localStorage.getItem('theme') === 'dark' ||
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
     ) {
       return 'dark';
     }
@@ -28,7 +29,7 @@ export default function useDarkMode() {
   };
 
   const toggleTheme = () => {
-    setTheme((prevTheme) => prevTheme === 'dark' ? 'light' : 'dark');
+    setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
   useEffect(() => {
@@ -50,4 +51,4 @@ export default function useDarkMode() {
   }, []);
 
   return { theme, toggleTheme };
-};
+}

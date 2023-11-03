@@ -1,17 +1,17 @@
-import useDarkMode from "~/hooks/useDarkMode";
-import { RiSunLine, RiMoonLine } from "react-icons/ri";
+import useDarkMode from '~/hooks/useDarkMode';
+import { RiSunLine, RiMoonLine } from 'react-icons/ri';
 
 export const Header = () => {
   const { theme, toggleTheme } = useDarkMode();
 
   return (
-    <div className="flex justify-end w-screen h-16 pt-4 px-8">
+    <div className="flex h-16 w-screen justify-end px-8 pt-4">
       <button
-        className="w-12 rounded-lg flex items-center justify-center hover:bg-gray-300 transition dark:hover:bg-gray-700 dark:text-gray-300"
+        className="flex w-12 items-center justify-center rounded-lg transition hover:bg-gray-300 dark:text-gray-300 dark:hover:bg-gray-700"
         onClick={toggleTheme}
       >
         {theme === 'light' ? <RiSunLine size={24} /> : <RiMoonLine size={24} />}
       </button>
     </div>
-  )
-}
+  );
+};

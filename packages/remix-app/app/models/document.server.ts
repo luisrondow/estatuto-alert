@@ -1,16 +1,16 @@
-import { prisma } from "~/db.server";
+import { prisma } from '~/db.server';
 
 type Person = {
   name: string;
   birthDate: Date;
-}
+};
 
 export type CrawlerDocument = {
   externalId: string;
   date: Date;
   link: string;
   persons: Person[];
-}
+};
 
 export async function addDocument(document: CrawlerDocument) {
   console.log('addDocument', document);
@@ -21,7 +21,7 @@ export async function addDocument(document: CrawlerDocument) {
       ...documentData,
       persons: {
         create: persons.map((person) => ({
-          ...person
+          ...person,
         })),
       },
     },

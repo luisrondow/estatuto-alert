@@ -1,11 +1,11 @@
-import { prisma } from "~/db.server";
+import { prisma } from '~/db.server';
 
 export type CrawlerJob = {
   runDate: Date;
   status: 'SUCCESS' | 'ERROR';
   error?: string;
   lastDocumentBeforeRun?: string;
-}
+};
 
 export async function addJob(job: CrawlerJob) {
   const lastDocumentBeforeRun = await prisma.document.findMany({
