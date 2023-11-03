@@ -1,24 +1,11 @@
 {
-  "name": "estatuto-alert",
-  "version": "0.0.1",
-  "description": "",
-  "main": "./src/index.js",
-  "type": "module",
-  "scripts": {
-    "start": "node src/index.js",
-    "dev": "ts-node src/index.ts",
-    "crawler": "node src/crawler/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "5.1.1",
-    "pdfreader": "^3.0.2",
-    "puppeteer": "^21.0.3"
-  },
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {},
   "devDependencies": {
-    "prisma": "^5.1.1"
+    "lerna": "^7.2.0"
   }
 }

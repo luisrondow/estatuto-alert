@@ -1,6 +1,7 @@
 import fs from 'fs'
 import https from 'https'
 import { PdfReader } from "pdfreader";
+import axios from 'axios'
 
 /**
  * Check if a given string is a valid date.
@@ -84,4 +85,24 @@ export function readPdfFile(fileName) {
       });
     });
   });
+}
+
+/**
+ * Send data to an API.
+ *
+ * @param {String} type
+ * @param {Object} data
+ *
+ * @returns {Promise<Object>}
+ *
+ * */
+export async function sendDataToAPI(type, data) {
+  const API_URL = `http://localhost:3000/receive-data?type=${type}`;
+
+  try {
+      const response = await axios.post(API_URL, data);
+      return response.data;
+  } catch (error) {
+      throw new Error(`Failed to send data to API: ${error.message}`);
+  }
 }
